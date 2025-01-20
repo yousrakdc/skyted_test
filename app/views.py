@@ -8,6 +8,7 @@ from .models import Article
 from django.core.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 import json
+from django.contrib.auth.decorators import login_required
 
 # Home View - Handles display and actions related to articles
 def home(request):
@@ -20,7 +21,7 @@ def home(request):
             image = request.POST['image']
             article = Article(title=title, description=description, price=price, image=image)
             article.save()
-            return redirect('home')  # Redirect to home after adding article
+            return redirect('home')
 
         # Modify Article
         elif 'modify_article' in request.POST:
@@ -33,9 +34,9 @@ def home(request):
                     article.price = request.POST['price']
                     article.image = request.POST['image']
                     article.save()
-                    return redirect('home')  # Redirect to home after modifying article
+                    return redirect('home')
                 except Article.DoesNotExist:
-                    pass  # Handle case where article doesn't exist
+                    pass
 
         # Delete Article
         elif 'delete_article' in request.POST:
@@ -44,9 +45,9 @@ def home(request):
                 try:
                     article = Article.objects.get(id=article_key)
                     article.delete()
-                    return redirect('home')  # Redirect to home after deleting article
+                    return redirect('home')
                 except Article.DoesNotExist:
-                    pass  # Handle case where article doesn't exist
+                    pass
 
     # For GET request, render the page with articles and users from Firebase
     articles = Article.objects.all()
@@ -58,30 +59,36 @@ def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
-        
+
+        # Validate the password using Django's validation
         try:
-            # Validate the password
             validate_password(password)
         except ValidationError as e:
             messages.error(request, '; '.join(e.messages))
             return render(request, 'login.html')
 
         try:
-            # Login or register with Firebase Authentication
+            # Login or register the user
             user = login_or_register(email, password)
+
+            # Set session details
             request.session['user_id'] = user.uid
-            request.session.set_expiry(300)  # Session expires in 5 minutes
-            return redirect('home')  # Redirect to home after successful login
+            request.session.set_expiry(300)
+            return redirect('home')
+        except ValueError as ve:
+            messages.error(request, f"Error: {str(ve)}")
+            return render(request, 'login.html')
         except Exception as e:
-            messages.error(request, f"Error: {str(e)}")
+            messages.error(request, f"Unexpected error occurred: {str(e)}")
             return render(request, 'login.html')
 
     return render(request, 'login.html')
 
-# Logout View - Logs the user out of the session
+@login_required 
 def logout_user(request):
+
     logout(request)
-    return JsonResponse({"message": "User logged out successfully"})
+    return redirect('login')
 
 # Create Article View - Adds a new article via API (JSON)
 @csrf_exempt
