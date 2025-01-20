@@ -19,7 +19,6 @@ def is_valid_email(email):
 # Function to login or register user
 def login_or_register(email, password):
     try:
-        # Check if email is valid
         if not is_valid_email(email):
             raise ValueError("Invalid email format.")
         
@@ -28,12 +27,12 @@ def login_or_register(email, password):
             user = auth.get_user_by_email(email)
             logger.info(f"User {email} found in Firebase Authentication.")
 
-            # Check if the user exists in Realtime Database
+            # Check if the user exists in database
             ref = db.reference('users')
             user_data = ref.child(user.uid).get()
             
             if not user_data:
-                # Add user to the Realtime Database if missing
+                # Add user to the database if missing
                 ref.child(user.uid).set({
                     'email': email,
                     'uid': user.uid
@@ -46,7 +45,7 @@ def login_or_register(email, password):
             logger.info(f"User {email} not found. Creating a new account.")
             user = auth.create_user(email=email, password=password)
             
-            # Add the new user to the Realtime Database
+            # Add the new user to the database
             ref = db.reference('users')
             ref.child(user.uid).set({
                 'email': email,
@@ -62,7 +61,7 @@ def login_or_register(email, password):
 def get_users_from_firebase():
     try:
         ref = db.reference('users')
-        users = ref.get()  # Fetch all users from the Firebase 'users' node
+        users = ref.get()  # Fetch all users from database
         
         if users:
             user_list = []
