@@ -10,10 +10,10 @@ from django.contrib.auth.password_validation import validate_password
 import json
 from django.contrib.auth.decorators import login_required
 
-# Home View - Handles display and actions related to articles
+# Home view - Handles display and actions related to articles
 def home(request):
     if request.method == "POST":
-        # Add Article
+        # Add article
         if 'add_article' in request.POST:
             title = request.POST['title']
             description = request.POST['description']
@@ -23,7 +23,7 @@ def home(request):
             article.save()
             return redirect('home')
 
-        # Modify Article
+        # Modify article
         elif 'modify_article' in request.POST:
             article_key = request.POST.get('article_key')
             if article_key:
@@ -38,7 +38,7 @@ def home(request):
                 except Article.DoesNotExist:
                     pass
 
-        # Delete Article
+        # Delete article
         elif 'delete_article' in request.POST:
             article_key = request.POST.get('article_key')
             if article_key:
@@ -54,7 +54,7 @@ def home(request):
     users = get_users_from_firebase()
     return render(request, 'home.html', {'articles': articles, 'users': users})
 
-# Login View - Handles user login and registration
+# Login view - Handles user login and registration
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -90,7 +90,7 @@ def logout_user(request):
     logout(request)
     return redirect('login')
 
-# Create Article View - Adds a new article via API (JSON)
+# Create article view - Adds a new article via API (JSON)
 @csrf_exempt
 def add_article(request):
     if request.method == 'POST':
@@ -105,7 +105,7 @@ def add_article(request):
         except Exception as e:
             return JsonResponse({"error": f"Error adding article: {str(e)}"}, status=400)
 
-# Delete Article View - Deletes an article by its ID
+# Delete article view - Deletes an article by its ID
 @csrf_exempt
 def delete_article(request, article_id):
     try:
@@ -116,7 +116,7 @@ def delete_article(request, article_id):
     except Article.DoesNotExist:
         return JsonResponse({"error": "Article not found"}, status=404)
 
-# Update Article View - Updates an article by its ID
+# Update article view - Updates an article by its ID
 @csrf_exempt
 def update_article(request, article_id):
     try:
